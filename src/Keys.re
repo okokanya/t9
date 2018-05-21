@@ -29,7 +29,14 @@ let combineKeys = (list1, list2) => {
 };
 
 let getCombinations = (numbers: list(int)): list(string) =>
-  Belt.List.reduceReverse(numbers, [], (acc, num) => List.length(acc) !== 0 ? combineKeys(acc, List.nth(keyboard, num)) : List.nth(keyboard, num));
+  Belt.List.reduceReverse(numbers, [], (acc, num) => {
+    let listLength = List.length(acc);
+    switch listLength {
+    | 0 => List.nth(keyboard, num)
+    | x when x < 100 => combineKeys(acc, List.nth(keyboard, num))
+    | _ => acc
+    };
+  });
 
 let findCombinations = input =>
   input

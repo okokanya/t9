@@ -1,5 +1,5 @@
 open Express;
-type expressMiddleware;
+
 [@bs.module] external cors : unit => Express.Middleware.t = "";
 
 let app = express();

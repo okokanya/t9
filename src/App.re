@@ -36,7 +36,6 @@ let requestCombinations = (keysPressed: string, self: ReasonReact.self(state, Re
 };
 
 let requestSuggestions = (prefix: string, self: ReasonReact.self(state, ReasonReact.noRetainedProps, action)) => {
-  Js.log("request suggestions");
   Js.Promise.(
     Instance.get(axiosInst, "/?q=" ++ prefix)
     |> then_((response) => resolve(self.send(GetSuggestions(Array.to_list(response##data##suggestions)))))
@@ -47,11 +46,10 @@ let requestSuggestions = (prefix: string, self: ReasonReact.self(state, ReasonRe
 let handleKeyPress = (key, self: ReasonReact.self(state, ReasonReact.noRetainedProps, action)) => {
   switch key {
   | 0 => self.send(SpacePress)
-  | x when x > 1 && x < 10 => {
-    let keysPressed = Belt_List.reduceReverse(self.state.keysPressed, "", (acc, num) => acc ++ string_of_int(num));
-    let _request = requestCombinations(keysPressed ++ string_of_int(key), self);
-    self.send(KeyPress(x))
-  };
+  | x when x > 1 && x < 10 && List.length(self.state.keysPressed) < 9 =>
+      let keysPressed = Belt_List.reduceReverse(self.state.keysPressed, "", (acc, num) => acc ++ string_of_int(num));
+      let _request = requestCombinations(keysPressed ++ string_of_int(key), self);
+      self.send(KeyPress(x))
   | y => Js.log(string_of_int(y) ++ " pressed")
   };
 };
@@ -108,84 +106,81 @@ let make = _children => {
 
   reducer: (action, state) =>
     switch (action) {
-    | KeyPress(key) => ReasonReact.Update({
-      ...state,
-      keysPressed: List.append([key], state.keysPressed),
-      actionState: Combinations
-    })
+      | KeyPress(key) => ReasonReact.Update({
+        ...state,
+        keysPressed: List.append([key], state.keysPressed),
+        actionState: Combinations
+      })
 
-    | SpacePress => {
-      let nextWords = switch(state.actionState) {
-      | Combinations => List.append([""], addCombinationToCurrent(state))
-      | _ => addNewWord(state)
-      };
-      ReasonReact.Update({ ...initialState, actionState: Idle, words: nextWords });
-    }
-    
-    | DownArrowPress => {
-      let newOption = switch (state.chosenOption + 1) {
-      | x when x < List.length(state.combinations) || x < List.length(state.suggestions) => x
-      | _ => List.length(state.combinations) - 1
-      };
-      ReasonReact.Update({ ...state, chosenOption: newOption })
-    }
-
-    | UpArrowPress => {
-      let newOption = switch (state.chosenOption - 1) {
-      | x when x >= 0 => x
-      | _ => 0
-      };
-      ReasonReact.Update({ ...state, chosenOption: newOption })
-    }
-
-    | BackspacePress => {
-      let nextKeysPressed = switch state.actionState {
-        | Combinations when List.length(state.keysPressed) <= 1 => []
-        | Combinations => List.tl(state.keysPressed)
-        | _ => state.keysPressed
-      };
-      let nextWords = switch state.actionState {
-        | Combinations when state.keysPressed != [] => state.words
-        | _ when state.words == [""] => state.words
-        | _ => {
-          switch (List.hd(state.words)) {
-            | "" => {
-              let nextWords = List.tl(state.words);
-              switch (List.hd(nextWords)) {
-              | "" => nextWords
-              | x => [removeLastChar(x), ...List.tl(nextWords)]
-              };
-            }
-            | x => [removeLastChar(x), ...List.tl(state.words)];
-          }
-        }
-      };
-      ReasonReact.Update({ ...initialState, actionState: state.actionState, keysPressed: nextKeysPressed, words: nextWords });
-    }
-
-    | ReturnPress => {
-      let nextActionState = switch(state.actionState) {
-      | Idle => Idle
-      | Combinations => Suggestions
-      | Suggestions => Idle
-      };
-      let nextWords = switch(state.actionState) {
-      | Combinations => addCombinationToCurrent(state)
-      | Suggestions => addSuggestionToCurrent(state)
-      | _ => state.words
-      };
-      ReasonReact.Update({ ...initialState, actionState: nextActionState, words: nextWords });
-    }
-    
-    | GetCombinations(combinations) => ReasonReact.Update({ ...state, combinations })
-    | GetSuggestions(suggestions) => {
-      let nextActionState =
-        switch suggestions {
-        | [] => Idle
-        | _ => Suggestions
+      | SpacePress =>
+        let nextWords = switch(state.actionState) {
+          | Combinations => List.append([""], addCombinationToCurrent(state))
+          | _ => addNewWord(state)
         };
-      ReasonReact.Update({ ...state, suggestions, actionState: nextActionState })
-    }
+        ReasonReact.Update({ ...initialState, actionState: Idle, words: nextWords });
+      
+      | DownArrowPress =>
+        let newOption = switch (state.chosenOption + 1) {
+          | x when x < List.length(state.combinations) || x < List.length(state.suggestions) => x
+          | _ => List.length(state.combinations) - 1
+        };
+        ReasonReact.Update({ ...state, chosenOption: newOption })
+
+      | UpArrowPress =>
+        let newOption = switch (state.chosenOption - 1) {
+          | x when x >= 0 => x
+          | _ => 0
+        };
+        ReasonReact.Update({ ...state, chosenOption: newOption })
+
+      | BackspacePress =>
+        let nextKeysPressed = switch state.actionState {
+          | Combinations when List.length(state.keysPressed) <= 1 => []
+          | Combinations => List.tl(state.keysPressed)
+          | _ => state.keysPressed
+        };
+        let nextCombinations = switch (List.length(state.keysPressed)) {
+          | 0 => []
+          | 1 => []
+          | _ => state.combinations
+        };
+        let nextWords = switch state.actionState {
+          | Combinations when state.keysPressed != [] => state.words
+          | _ when state.words == [""] => state.words
+          | _ =>
+            switch (List.hd(state.words)) {
+              | "" =>
+                let nextWords = List.tl(state.words);
+                switch (List.hd(nextWords)) {
+                  | "" => nextWords
+                  | x => [removeLastChar(x), ...List.tl(nextWords)]
+                };
+              | x => [removeLastChar(x), ...List.tl(state.words)];
+            }
+        };
+        ReasonReact.Update({ ...initialState, actionState: state.actionState, keysPressed: nextKeysPressed, words: nextWords, combinations: nextCombinations });
+
+      | ReturnPress =>
+        let nextActionState = switch(state.actionState) {
+          | Idle => Idle
+          | Combinations => Suggestions
+          | Suggestions => Idle
+        };
+        let nextWords = switch(state.actionState) {
+          | Combinations => addCombinationToCurrent(state)
+          | Suggestions => addSuggestionToCurrent(state)
+          | _ => state.words
+        };
+        ReasonReact.Update({ ...initialState, actionState: nextActionState, words: nextWords });
+      
+      | GetCombinations(combinations) => ReasonReact.Update({ ...state, combinations })
+      | GetSuggestions(suggestions) =>
+        let nextActionState =
+          switch suggestions {
+            | [] => Idle
+            | _ => Suggestions
+          };
+        ReasonReact.Update({ ...state, suggestions, actionState: nextActionState })
   },
 
   render: self => {

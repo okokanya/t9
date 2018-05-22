@@ -19,8 +19,8 @@ let keyboard: list(list(string)) = [
 
 let rec concatValues = (list1, list2) =>
   switch list1 {
-  | [] => []
-  | [head, ...tail] => [ List.map(char => head ++ char, list2), ...concatValues(tail, list2) ]
+    | [] => []
+    | [head, ...tail] => [ List.map(char => head ++ char, list2), ...concatValues(tail, list2) ]
   };
 
 let combineKeys = (list1, list2) =>
@@ -34,9 +34,9 @@ let getCombinations = (numbers: list(int)): list(string) =>
 let sortCombinations = array => {
   Array.sort((a, b) => {
     switch ([hasWord(dict, a), hasWord(dict, b)]) {
-    | [true, false] => -1
-    | [false, true] => 1
-    | _ => 0
+      | [true, false] => -1
+      | [false, true] => 1
+      | _ => 0
     }
   }, array);
   array
@@ -44,15 +44,15 @@ let sortCombinations = array => {
 
 let cutArray = array =>
   switch array {
-  | x when Array.length(array) < 100 => x
-  | x => Array.sub(x, 0, 100)
+    | x when Array.length(array) < 100 => x
+    | x => Array.sub(x, 0, 100)
   };
 
 let addPrefixAsFirstSuggestion = (prefix, array) =>
   switch array {
-  | [||] => [|prefix|]
-  | x when Array.get(x, 0) == prefix => x
-  | x => Array.append([|prefix|], x)
+    | [||] => [|prefix|]
+    | x when Array.get(x, 0) == prefix => x
+    | x => Array.append([|prefix|], x)
   };
 
 let findCombinations = input =>
@@ -67,8 +67,8 @@ let findCombinations = input =>
 
 let findSuggestions = (string, combinations) => {
   let suggestions = switch combinations {
-  | [||] => getPrefix(dict, string, false)
-  | _ => Belt.Array.reduce(combinations, [||], (acc, prefix) => Array.append(acc, getPrefix(dict, string ++ prefix, false)))
+    | [||] => getPrefix(dict, string, false)
+    | _ => Belt.Array.reduce(combinations, [||], (acc, prefix) => Array.append(acc, getPrefix(dict, string ++ prefix, false)))
   };
   suggestions
   |> cutArray

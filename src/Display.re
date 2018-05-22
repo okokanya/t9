@@ -32,9 +32,9 @@ let make = (~words, ~combinations, ~suggestions, ~chosenOption, _children) => {
     let word = w => <div className="word"><div className="chars"><div>(ReasonReact.string(w))</div></div></div>;
     let wordsList = List.rev_map(a => a, List.mapi((index, item) => {
       switch index {
-      | 0 when List.length(combinations) > 1 => headerWord(item);
-      | 0 when List.length(suggestions) > 1 => suggestionItems()
-      | _ => word(item)
+        | 0 when List.length(combinations) > 1 => headerWord(item);
+        | 0 when List.length(suggestions) > 1 => suggestionItems()
+        | _ => word(item)
       };
 
     }, words));

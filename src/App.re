@@ -85,7 +85,7 @@ let addSuggestionToCurrent = state => {
 let addNewWord = state =>
   List.append([""], state.words);
 
-let trimString = string =>
+let removeLastChar = string =>
   StdLabels.String.sub(string, 0, StdLabels.String.length(string) - 1);
 
 let initialState: state = {
@@ -150,9 +150,9 @@ let make = _children => {
           switch word {
             | "" => {
               let nextWords = List.tl(state.words);
-              [trimString(List.hd(nextWords)), ...List.tl(nextWords)];
+              [removeLastChar(List.hd(nextWords)), ...List.tl(nextWords)];
             }
-            | _ => [trimString(word), ...List.tl(state.words)];
+            | _ => [removeLastChar(word), ...List.tl(state.words)];
           }
         }
       };
@@ -179,18 +179,23 @@ let make = _children => {
     },
 
   render: self => {
-    let words = Belt.List.mapReverse(self.state.words, word => <span className="word">(ReasonReact.string(word))</span>);
-    Js.log(Array.of_list(self.state.keysPressed));
-    <div className="container">
-      (ReasonReact.array(Array.of_list(words)))
-      (ReasonReact.string(List.nth(self.state.combinations, self.state.chosenOption)))
-      <Keyboard
-        onKeyPress={(_event, key) => handleKeyPress(key, self)}
-        onUpArrowPress={_event => self.send(UpArrowPress)}
-        onDownArrowPress={_event => self.send(DownArrowPress)}
-        onReturnPress={_event => handleReturnPress(self)}
-        onBackspacePress={_event => handleBackspacePress(self)}
+    <div>
+      <Display
+        words=self.state.words
+        combinations=self.state.combinations
+        suggests=self.state.suggests
+        actionState=self.state.actionState
+        chosenOption=self.state.chosenOption
       />
+      <div className="container">
+        <Keyboard
+          onKeyPress={(_event, key) => handleKeyPress(key, self)}
+          onUpArrowPress={_event => self.send(UpArrowPress)}
+          onDownArrowPress={_event => self.send(DownArrowPress)}
+          onReturnPress={_event => handleReturnPress(self)}
+          onBackspacePress={_event => handleBackspacePress(self)}
+        />
+      </div>
     </div>
   },
 };

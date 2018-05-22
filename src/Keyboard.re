@@ -65,5 +65,5 @@ let make = (~onKeyPress, ~onUpArrowPress, ~onDownArrowPress, ~onReturnPress, ~on
         <span className="number">(ReasonReact.string("#"))</span>
       </button>
     </div>
-  },
+  }
 };

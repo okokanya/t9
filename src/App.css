@@ -1,7 +1,7 @@
 .grid-container {
   display: grid;
   width: 320px;
-  margin: 100px auto;
+  margin: 0 auto;
   grid-template-columns: repeat(3, 100px);
   grid-template-rows: repeat(6, 50px);
   grid-gap: 8px;
@@ -26,20 +26,20 @@ span.word {
   justify-content: center;
 }
 
-.container button {
+.grid-container button {
   font-size: 16px;
   display: flex;
   padding: 0 15px;
   cursor: pointer;
   border: 2px solid black;
   border-radius: 8px;
-  background-color: rgba(0, 0, 0, .08);
+  background-color: white;
   align-items: center;
 }
 
-button:hover {
+.grid-container button:hover {
   transition: .2s;
-  background-color: white;
+  background-color: rgba(0, 0, 0, .08);
 }
 
 .arrow-up {
@@ -64,4 +64,44 @@ button:hover {
   margin: 20px 20px 20px 0;
   grid-column: 1/2;
   grid-row: 1/3;
+}
+
+.display{
+  display:flex;
+  justify-content:left;
+  align-items:top;
+  margin: 50px;
+  position: relative;
+  font-weight: 100;
+}
+
+.word {
+  margin-right: 10px;
+  height: 176px;
+  overflow: hidden;
+  display: flex;
+  padding-top: 132px;
+}
+
+.chars {
+  transition: transform .2s;
+}
+
+.chars div {
+  padding: 2px 0;
+  font-size: 36px;
+  line-height: 40px;
+  color: gray;
+}
+
+.chars .black {
+  color: black;
+}
+
+.line {
+  position: absolute;
+  top: 176px;
+  right: 0;
+  left: 0;
+  border-bottom: 2px solid black;
 }

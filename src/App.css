@@ -67,6 +67,7 @@ span.word {
 }
 
 .display{
+  font-family: 'Inconsolata', sans-serif;
   display:flex;
   justify-content:left;
   align-items:top;
@@ -84,7 +85,7 @@ span.word {
 }
 
 .chars {
-  transition: transform .2s;
+  transition: transform .1s;
 }
 
 .chars div {
@@ -104,4 +105,12 @@ span.word {
   right: 0;
   left: 0;
   border-bottom: 2px solid black;
+}
+
+.cursor {
+  width: 3px;
+  height: 34px;
+  background: red;
+  margin-top: 138px;
+  margin-left: -8px;
 }

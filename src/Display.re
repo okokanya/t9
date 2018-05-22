@@ -28,17 +28,19 @@ let make = (~words, ~combinations, ~suggestions, ~chosenOption, _children) => {
       </div>
     };
 
-    let word = word => <div className="word"><div className="chars"><div>(ReasonReact.string(word))</div></div></div>;
+    let cursor = List.length(suggestions) > 1 ? <div/> : <div className="cursor" />;
+    let word = w => <div className="word"><div className="chars"><div>(ReasonReact.string(w))</div></div></div>;
     let wordsList = List.rev_map(a => a, List.mapi((index, item) => {
       switch index {
       | 0 when List.length(combinations) > 1 => headerWord(item);
       | 0 when List.length(suggestions) > 1 => suggestionItems()
       | _ => word(item)
       };
+
     }, words));
     <div className="display">
       <div className="line" />
-      (ReasonReact.array(Array.of_list(wordsList)))
+      (ReasonReact.array(Array.of_list(List.append(wordsList, [cursor]))))
     </div>
   }
 };

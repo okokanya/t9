@@ -3,6 +3,7 @@ type trie;
 [@bs.module] external trie : array(string) => trie = "trie-prefix-tree";
 [@bs.send] external getWords : (trie, bool) => array(string) = "";
 [@bs.send] external getPrefix : (trie, string, bool) => array(string) = "";
+[@bs.send] external hasWord : (trie, string) => bool = "";
 let dict = trie(words);
 
 let keyboard: list(list(string)) = [
@@ -30,16 +31,34 @@ let combineKeys = (list1, list2) =>
 let getCombinations = (numbers: list(int)): list(string) =>
   Belt.List.reduceReverse(numbers, [], (acc, num) => List.length(acc) !== 0 ? combineKeys(acc, List.nth(keyboard, num - 2)) : List.nth(keyboard, num - 2));
 
+let sortCombinations = array => {
+  Array.sort((a, b) => {
+    switch ([hasWord(dict, a), hasWord(dict, b)]) {
+    | [true, false] => -1
+    | [false, true] => 1
+    | _ => 0
+    }
+  }, array);
+  array
+};
+
 let findCombinations = input =>
   input
   |> Js.String.split("")
   |> Array.map(int_of_string)
   |> Array.to_list
   |> getCombinations
-  |> Array.of_list;
+  |> Array.of_list
+  |> sortCombinations;
 
-let findSuggests = (string, combinations) =>
-  switch combinations {
+let findSuggestions = (string, combinations) => {
+  let suggestions = switch combinations {
   | [||] => getPrefix(dict, string, false)
   | _ => Belt.Array.reduce(combinations, [||], (acc, prefix) => Array.append(acc, getPrefix(dict, string ++ prefix, false)))
   };
+  switch suggestions {
+  | [||] => [||]
+  | x when Array.length(x) < 100 => x
+  | x => Array.sub(x, 0, 100);
+  };
+};

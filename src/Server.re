@@ -17,25 +17,25 @@ module Combinations {
       |. findCombinations
 };
 
-module Suggests {
-  let findSuggests = (nullableString, combinations) => {
+module Suggestions {
+  let findSuggestions = (nullableString, combinations) => {
     switch (nullableString) {
     | None => [||]
-    | Some(s) => Keys.findSuggests(Js.String.make(s), combinations)
+    | Some(s) => Keys.findSuggestions(Js.String.make(s), combinations)
     }
   };
-  let getSuggests = (query, combinations) =>
+  let getSuggestions = (query, combinations) =>
     query
       |. Js.Dict.get("q")
-      |. findSuggests(combinations)
+      |. findSuggestions(combinations)
 };
 
 let handleRequest = query => {
   let charCombinations = Combinations.getCombinations(query);
-  let wordSuggests = Suggests.getSuggests(query, charCombinations);
+  let wordSuggestions = Suggestions.getSuggestions(query, charCombinations);
   let answer = Js.Dict.empty();
   Js.Dict.set(answer, "combinations", Json.Encode.stringArray(charCombinations));
-  Js.Dict.set(answer, "suggests", Json.Encode.stringArray(wordSuggests));
+  Js.Dict.set(answer, "suggestions", Json.Encode.stringArray(wordSuggestions));
   answer;
 };
 

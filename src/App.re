@@ -5,7 +5,7 @@ let axiosInst = Instance.create(makeConfig(~baseURL="http://localhost:5000", ())
 
 type action =
   | GetCombinations(list(string))
-  | GetSuggests(list(string))
+  | GetSuggestions(list(string))
   | KeyPress(int)
   | SpacePress
   | UpArrowPress
@@ -16,13 +16,13 @@ type action =
 type actionState =
   | Idle
   | Combinations
-  | Suggests;
+  | Suggestions;
 
 type state = {
   keysPressed: list(int),
   words: list(string),
   combinations: list(string),
-  suggests: list(string),
+  suggestions: list(string),
   chosenOption: int,
   actionState: actionState
 };
@@ -35,11 +35,11 @@ let requestCombinations = (keysPressed: string, self: ReasonReact.self(state, Re
   );
 };
 
-let requestSuggests = (prefix: string, self: ReasonReact.self(state, ReasonReact.noRetainedProps, action)) => {
-  Js.log("request suggests");
+let requestSuggestions = (prefix: string, self: ReasonReact.self(state, ReasonReact.noRetainedProps, action)) => {
+  Js.log("request suggestions");
   Js.Promise.(
     Instance.get(axiosInst, "/?q=" ++ prefix)
-    |> then_((response) => resolve(self.send(GetSuggests(Array.to_list(response##data##suggests)))))
+    |> then_((response) => resolve(self.send(GetSuggestions(Array.to_list(response##data##suggestions)))))
     |> catch((error) => resolve(Js.log(error)))
   );
 };
@@ -58,8 +58,8 @@ let handleKeyPress = (key, self: ReasonReact.self(state, ReasonReact.noRetainedP
 
 let handleReturnPress = (self: ReasonReact.self(state, ReasonReact.noRetainedProps, action)) => {
   if (self.state.actionState == Combinations) {
-    let prefix = List.nth(self.state.words, List.length(self.state.words) -1) ++ List.nth(self.state.combinations, self.state.chosenOption);
-    let _request = requestSuggests(prefix, self);
+    let prefix = List.hd(self.state.words) ++ List.nth(self.state.combinations, self.state.chosenOption);
+    let _request = requestSuggestions(prefix, self);
   };
   self.send(ReturnPress);
 };
@@ -78,8 +78,10 @@ let addCombinationToCurrent = state => {
 };
 
 let addSuggestionToCurrent = state => {
-  let word = List.nth(state.suggests, state.chosenOption);
-  List.append([word], List.tl(state.words));
+  let word = List.nth(state.suggestions, state.chosenOption);
+  List.tl(state.words)
+  |> List.append([word])
+  |> List.append([""])
 };
 
 let addNewWord = state =>
@@ -92,7 +94,7 @@ let initialState: state = {
   keysPressed: [],
   words: [""],
   combinations: [""],
-  suggests: [""],
+  suggestions: [""],
   chosenOption: 0,
   actionState: Idle
 };
@@ -122,7 +124,7 @@ let make = _children => {
     
     | DownArrowPress => {
       let newOption = switch (state.chosenOption + 1) {
-      | x when x < List.length(state.combinations) => x
+      | x when x < List.length(state.combinations) || x < List.length(state.suggestions) => x
       | _ => List.length(state.combinations) - 1
       };
       ReasonReact.Update({ ...state, chosenOption: newOption })
@@ -162,29 +164,36 @@ let make = _children => {
     | ReturnPress => {
       let nextActionState = switch(state.actionState) {
       | Idle => Idle
-      | Combinations => Suggests
-      | Suggests => Idle
+      | Combinations => Suggestions
+      | Suggestions => Idle
       };
 
       let nextWords = switch(state.actionState) {
       | Combinations => addCombinationToCurrent(state)
-      | Suggests => addSuggestionToCurrent(state)
+      | Suggestions => addSuggestionToCurrent(state)
       | _ => state.words
       };
+
       ReasonReact.Update({ ...initialState, actionState: nextActionState, words: nextWords });
     }
     
     | GetCombinations(combinations) => ReasonReact.Update({ ...state, combinations })
-    | GetSuggests(suggests) => ReasonReact.Update({ ...state, suggests })
-    },
+    | GetSuggestions(suggestions) => {
+      let nextActionState =
+        switch suggestions {
+        | [] => Idle
+        | _ => Suggestions
+        };
+      ReasonReact.Update({ ...state, suggestions, actionState: nextActionState })
+    }
+  },
 
   render: self => {
     <div>
       <Display
         words=self.state.words
         combinations=self.state.combinations
-        suggests=self.state.suggests
-        actionState=self.state.actionState
+        suggestions=self.state.suggestions
         chosenOption=self.state.chosenOption
       />
       <div className="container">

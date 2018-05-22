@@ -148,13 +148,15 @@ let make = _children => {
         | Combinations when state.keysPressed != [] => state.words
         | _ when state.words == [""] => state.words
         | _ => {
-          let word = List.hd(state.words);
-          switch word {
+          switch (List.hd(state.words)) {
             | "" => {
               let nextWords = List.tl(state.words);
-              [removeLastChar(List.hd(nextWords)), ...List.tl(nextWords)];
+              switch (List.hd(nextWords)) {
+              | "" => nextWords
+              | x => [removeLastChar(x), ...List.tl(nextWords)]
+              };
             }
-            | _ => [removeLastChar(word), ...List.tl(state.words)];
+            | x => [removeLastChar(x), ...List.tl(state.words)];
           }
         }
       };
@@ -167,13 +169,11 @@ let make = _children => {
       | Combinations => Suggestions
       | Suggestions => Idle
       };
-
       let nextWords = switch(state.actionState) {
       | Combinations => addCombinationToCurrent(state)
       | Suggestions => addSuggestionToCurrent(state)
       | _ => state.words
       };
-
       ReasonReact.Update({ ...initialState, actionState: nextActionState, words: nextWords });
     }
     

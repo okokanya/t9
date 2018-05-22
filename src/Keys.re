@@ -42,6 +42,19 @@ let sortCombinations = array => {
   array
 };
 
+let cutArray = array =>
+  switch array {
+  | x when Array.length(array) < 100 => x
+  | x => Array.sub(x, 0, 100)
+  };
+
+let addPrefixAsFirstSuggestion = (prefix, array) =>
+  switch array {
+  | [||] => [|prefix|]
+  | x when Array.get(x, 0) == prefix => x
+  | x => Array.append([|prefix|], x)
+  };
+
 let findCombinations = input =>
   input
   |> Js.String.split("")
@@ -49,16 +62,15 @@ let findCombinations = input =>
   |> Array.to_list
   |> getCombinations
   |> Array.of_list
-  |> sortCombinations;
+  |> sortCombinations
+  |> cutArray;
 
 let findSuggestions = (string, combinations) => {
   let suggestions = switch combinations {
   | [||] => getPrefix(dict, string, false)
   | _ => Belt.Array.reduce(combinations, [||], (acc, prefix) => Array.append(acc, getPrefix(dict, string ++ prefix, false)))
   };
-  switch suggestions {
-  | [||] => [||]
-  | x when Array.length(x) < 100 => x
-  | x => Array.sub(x, 0, 100);
-  };
+  suggestions
+  |> cutArray
+  |> addPrefixAsFirstSuggestion(string)
 };

@@ -60,6 +60,9 @@ let make = (~onKeyPress, ~onUpArrowPress, ~onDownArrowPress, ~onReturnPress, ~on
       </button>
       <button onClick={event => onKeyPress(event, 0)}>
         <span className="number">(ReasonReact.string("0"))</span>
+        <svg width="22" height="20">
+          <polyline stroke="#000000" fill="none" strokeWidth="2" points="2 12 2 18 20 18 20 12" />
+        </svg>
       </button>
       <button>
         <span className="number">(ReasonReact.string("#"))</span>
